@@ -58,4 +58,4 @@ plt.scatter(X, P2)
 plt.title("Process")
 
 plt.tight_layout()
-plt.show()
+plt.show() 
