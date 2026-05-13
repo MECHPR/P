@@ -1,0 +1,60 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+import matplotlib.pyplot as plt
+
+# Load dataset directly from UCI repository (works on any PC)
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data"
+df = pd.read_csv(url, header=None)
+
+# Last column is the label
+df['label'] = df.iloc[:, -1]
+
+print(f"Total: {len(df)} | Ham: {sum(df['label']==0)} | Spam: {sum(df['label']==1)}")
+
+# Features (all except last column) and target
+X = df.iloc[:, :-1]
+y = df['label']
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train Naive Bayes
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+# Predictions
+y_pred = model.predict(X_test)
+print(f"\nAccuracy: {(y_pred == y_test).mean():.2%}")
+
+# Plot results
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+# Pie chart of Ham vs Spam
+df['label'].replace({0: 'Ham', 1: 'Spam'}).value_counts().plot(
+    kind='pie',
+    autopct='%1.1f%%',
+    ax=axes[0]
+)
+axes[0].set_title('Ham vs Spam')
+
+# Top spam features (difference in means)
+spam_score = model.theta_[1] - model.theta_[0]
+top_idx = spam_score.argsort()[-10:]
+
+axes[1].barh(range(10), spam_score[top_idx])
+axes[1].set_yticks(range(10))
+axes[1].set_yticklabels([f'Feature {i}' for i in top_idx])
+axes[1].set_title('Top 10 Spam Features')
+
+plt.tight_layout()
+plt.show()
+
+# Test predictions on first 3 samples
+test_messages = X_test.iloc[:3]
+for i in range(len(test_messages)):
+    sample = test_messages.iloc[i:i+1]
+    pred = model.predict(sample)[0]
+    print(f"\n'Test Message {i+1}...' → {'SPAM' if pred==1 else 'HAM'}")
