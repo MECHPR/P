@@ -25,4 +25,4 @@ plt.title("Confusion Matrix")
 plt.show()
 sample = [[5.1,3.5,1.4,0.2]]
 pred = model.predict(sample)
-print("Predicted Flower:", flowers[pred[0]])
+print("Predicted Flower:", flowers[pred[0]]) 
