@@ -22,4 +22,4 @@ for i in range(50):
     plt.ylabel("State")
     plt.pause(0.2)
 plt.ioff()  
-plt.show()
+plt.show() 
