@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import zipfile
+import os
+
+# ZIP dataset path
+zip_path = r"C:\Users\omkat\Downloads\predective maintaince or machine Failure.zip"
+
+# Extract ZIP file
+extract_folder = "machine_failure_data"
+
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    zip_ref.extractall(extract_folder)
+
+print("Dataset Extracted Successfully")
+print("Files:", os.listdir(extract_folder))
+
+# Markov Transition Matrix
+transition_matrix = np.array([
+    [0.8, 0.2],   # Working → Working / Failed
+    [0.6, 0.4]    # Failed → Working / Failed
+])
+
+# States
+states = ["Working", "Failed"]
+
+# Initial State
+current_state = 0
+
+# Store History
+history = []
+
+# Interactive Plot
+plt.ion()
+
+for i in range(50):
+
+    # Predict next state
+    current_state = np.random.choice(
+        [0, 1],
+        p=transition_matrix[current_state]
+    )
+
+    history.append(current_state)
+
+    # Clear graph
+    plt.clf()
+
+    # Plot graph
+    plt.plot(history, marker='o')
+
+    plt.yticks([0, 1], states)
+    plt.xlabel("Time Step")
+    plt.ylabel("Machine State")
+    plt.title("Predictive Maintenance Using Markov Process")
+    plt.grid(True)
+
+    plt.pause(0.2)
+
+plt.ioff()
+plt.show()
