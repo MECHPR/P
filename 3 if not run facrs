@@ -1,0 +1,126 @@
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+import sys
+import subprocess
+
+try:
+    import cv2
+except ImportError:
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "opencv-python"]
+    )
+    import cv2
+
+from sklearn.datasets import fetch_olivetti_faces
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+path = r"C:\Users\CAD LAB 17\Desktop\SE 07 ALML\olivetti_faces.npy"
+
+if os.path.exists(path):
+
+    imgs = np.load(path)
+
+    labels = np.array([i // 10 for i in range(len(imgs))])
+
+else:
+
+    data = fetch_olivetti_faces()
+
+    imgs = data.images
+    labels = data.target
+
+print("Dataset Shape :", imgs.shape)
+print("Number of Classes :", len(np.unique(labels)))
+
+color_imgs = []
+
+for img in imgs:
+
+    img_uint8 = (img * 255).astype("uint8")
+
+    color_img = cv2.cvtColor(
+        img_uint8,
+        cv2.COLOR_GRAY2BGR
+    )
+
+    color_imgs.append(color_img)
+
+color_imgs = np.array(color_imgs)
+
+features = []
+
+for img in color_imgs:
+
+    hist_features = []
+
+    for channel in range(3):
+
+        hist = cv2.calcHist(
+            [img],
+            [channel],
+            None,
+            [256],
+            [0, 256]
+        )
+
+        hist = cv2.normalize(hist, hist)
+
+        hist = hist.flatten()
+
+        hist_features.extend(hist)
+
+    features.append(hist_features)
+
+features = np.array(features)
+
+print("Feature Shape :", features.shape)
+
+X_train, X_test, y_train, y_test, img_train, img_test = train_test_split(
+    features,
+    labels,
+    color_imgs,
+    test_size=0.2,
+    random_state=42,
+    stratify=labels
+)
+
+model = RandomForestClassifier(
+    n_estimators=200,
+    random_state=42
+)
+
+model.fit(X_train, y_train)
+
+predictions = model.predict(X_test)
+
+accuracy = accuracy_score(y_test, predictions)
+
+print("Accuracy :", round(accuracy * 100, 2), "%")
+
+plt.figure(figsize=(10, 8))
+
+for i in range(6):
+
+    plt.subplot(2, 3, i + 1)
+
+    plt.imshow(
+        cv2.cvtColor(
+            img_test[i],
+            cv2.COLOR_BGR2RGB
+        )
+    )
+
+    plt.title(
+        f"Actual : {y_test[i]} | Predicted : {predictions[i]}"
+    )
+
+    plt.axis("off")
+
+plt.suptitle("Color Face Recognition Output")
+
+plt.tight_layout()
+
+plt.show()
