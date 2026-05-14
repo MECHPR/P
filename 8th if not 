@@ -1,0 +1,112 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+dataset_path = r"C:\Users\omkat\OneDrive\Desktop\DSAIML DATASET\predective maintaince or machine Failure (1)\machine_failure_dataset(1).csv"
+
+np.random.seed(0)
+
+W1 = np.random.randn(2, 5)
+W2 = np.random.randn(5, 1)
+
+lr = 0.01
+
+def nn(x, t=None):
+    global W1, W2
+
+    x = np.array(x, dtype=float)
+
+    if t is not None:
+        t = np.array(t, dtype=float)
+
+    h = np.tanh(np.dot(x, W1))
+    y = np.dot(h, W2)
+
+    if t is not None:
+
+        e = y - t
+
+
+        old_W2 = W2.copy()
+
+     
+        W2 -= lr * np.dot(h.T, e)
+
+        W1 -= lr * np.dot(
+            x.T,
+            np.dot(e, old_W2.T) * (1 - h**2)
+        )
+
+    return y
+
+P = []
+A = []
+
+for i in range(200):
+
+    x1 = np.random.rand() * 10
+    x2 = np.random.rand()
+
+    target = 5 * x1 + 50 * x2 + np.random.randn() * 5
+
+    pred = nn([[x1, x2]], [[target]])
+
+    P.append(pred[0, 0])
+    A.append(target)
+
+y = 0
+Y = []
+
+for i in range(200):
+
+    e = 1 - y
+
+    u = nn([[e, -y]])
+
+    y += 0.1 * u[0, 0]
+
+    nn([[e, -y]], [[1]])
+
+    Y.append(y)
+
+
+X = []
+P2 = []
+A2 = []
+
+for i in range(200):
+
+    u = np.random.uniform(-1, 1)
+
+    y = np.sin(2 * u) + 0.3 * u
+
+    pred = nn([[u, 0]], [[y]])
+
+    X.append(u)
+    P2.append(pred[0, 0])
+    A2.append(y)
+
+
+plt.figure(figsize=(12, 4))
+
+
+plt.subplot(131)
+plt.plot(A, label="Actual")
+plt.plot(P, label="Predicted")
+plt.title("Grades")
+plt.legend()
+
+
+plt.subplot(132)
+plt.plot(Y)
+plt.axhline(1, linestyle='--')
+plt.title("Control")
+
+plt.subplot(133)
+plt.scatter(X, A2, label="Actual")
+plt.scatter(X, P2, label="Predicted")
+plt.title("Process")
+plt.legend()
+
+plt.tight_layout()
+plt.show()
